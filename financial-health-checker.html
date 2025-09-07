@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Health Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .result-label {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .status-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .status-message {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .healthy {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .needs-improvement {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+
+        .risky {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .advice {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Financial Health Checker</h1>
+        
+        <div class="input-group">
+            <label for="income">Monthly Income (₹)</label>
+            <input type="number" id="income" placeholder="Enter your monthly income" min="0">
+        </div>
+
+        <div class="input-group">
+            <label for="expenses">Monthly Expenses (₹)</label>
+            <input type="number" id="expenses" placeholder="Enter your monthly expenses" min="0">
+        </div>
+
+        <div class="input-group">
+            <label for="emi">Monthly Loan/EMIs (₹)</label>
+            <input type="number" id="emi" placeholder="Enter your monthly EMIs" min="0">
+        </div>
+
+        <button onclick="checkFinancialHealth()">Check My Health</button>
+
+        <div id="results" class="results">
+            <div class="result-item">
+                <div class="result-label">Savings Rate</div>
+                <div id="savingsRate" class="result-value"></div>
+            </div>
+
+            <div class="result-item">
+                <div class="result-label">Debt-to-Income Ratio</div>
+                <div id="dtiRatio" class="result-value"></div>
+            </div>
+
+            <div id="status" class="status">
+                <div class="status-title">Overall Financial Health</div>
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <div id="advice" class="advice"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkFinancialHealth() {
+            // Get input values
+            const income = parseFloat(document.getElementById('income').value) || 0;
+            const expenses = parseFloat(document.getElementById('expenses').value) || 0;
+            const emi = parseFloat(document.getElementById('emi').value) || 0;
+
+            // Validate inputs
+            if (income <= 0) {
+                alert('Please enter a valid monthly income');
+                return;
+            }
+
+            if (expenses < 0 || emi < 0) {
+                alert('Expenses and EMI cannot be negative');
+                return;
+            }
+
+            if (expenses + emi > income) {
+                alert('Warning: Your expenses and EMIs exceed your income!');
+            }
+
+            // Calculate metrics
+            const savingsAmount = income - (expenses + emi);
+            const savingsRate = (savingsAmount / income) * 100;
+            const dtiRatio = (emi / income) * 100;
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.classList.add('show');
+
+            // Format and display savings rate
+            const savingsRateElement = document.getElementById('savingsRate');
+            if (savingsRate >= 0) {
+                savingsRateElement.textContent = savingsRate.toFixed(1) + '%';
+                savingsRateElement.style.color = savingsRate >= 20 ? '#2e7d32' : savingsRate >= 10 ? '#f57c00' : '#c62828';
+            } else {
+                savingsRateElement.textContent = savingsRate.toFixed(1) + '% (Deficit)';
+                savingsRateElement.style.color = '#c62828';
+            }
+
+            // Format and display DTI ratio
+            const dtiElement = document.getElementById('dtiRatio');
+            dtiElement.textContent = dtiRatio.toFixed(1) + '%';
+            dtiElement.style.color = dtiRatio < 30 ? '#2e7d32' : dtiRatio < 50 ? '#f57c00' : '#c62828';
+
+            // Determine overall status
+            const statusDiv = document.getElementById('status');
+            const statusMessage = document.getElementById('statusMessage');
+            const adviceDiv = document.getElementById('advice');
+
+            // Remove all status classes
+            statusDiv.classList.remove('healthy', 'needs-improvement', 'risky');
+
+            if (savingsRate >= 20 && dtiRatio < 30) {
+                statusDiv.classList.add('healthy');
+                statusMessage.textContent = '✅ HEALTHY';
+                adviceDiv.innerHTML = '<strong>Great job!</strong> You\'re maintaining a healthy financial balance. Keep up the good savings rate and low debt levels.';
+            } else if (savingsRate >= 10 && dtiRatio < 50) {
+                statusDiv.classList.add('needs-improvement');
+                statusMessage.textContent = '⚠️ NEEDS IMPROVEMENT';
+                adviceDiv.innerHTML = '<strong>You\'re doing okay, but there\'s room for improvement.</strong> Try to increase your savings rate to at least 20% and keep your debt-to-income ratio below 30%.';
+            } else {
+                statusDiv.classList.add('risky');
+                statusMessage.textContent = '⛔ RISKY';
+                adviceDiv.innerHTML = '<strong>Your financial health needs immediate attention.</strong> Consider reducing expenses, increasing income, or restructuring your debts. Aim for at least 10% savings and keep EMIs below 50% of income.';
+            }
+
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Allow Enter key to trigger calculation
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkFinancialHealth();
+                }
+            });
+        });
+
+        // Format number inputs as user types
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function(e) {
+                if (this.value < 0) {
+                    this.value = 0;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
